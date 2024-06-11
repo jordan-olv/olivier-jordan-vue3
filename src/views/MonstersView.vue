@@ -3,6 +3,7 @@ import { onBeforeMount, ref, watch, computed } from 'vue'
 import { useMonsterStore } from '@/stores/monsters.js'
 import { storeToRefs } from 'pinia'
 import { useRouter, useRoute } from 'vue-router'
+import MonsterItem from '@/components/MonsterCard.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -15,37 +16,25 @@ const page = ref(1)
 const limitMonster = ref(10) // LIMITE DE MONSTRE PAR PAGE
 const loading = ref(true)
 
-const goToDetail = (monsterId) => {
-  router.push({
-    name: 'monster-details',
-    params: {
-      monsterId
-    }
-  })
-}
-
-// BUTTONS PAGE
 const nextPage = async () => {
-    loading.value = true
+    loading.value = true;
     const nextPageData = await fetchAllMonsters(page.value + 1, limitMonster.value)
     if (nextPageData.length > 0) {
         page.value++
         await updateRouteAndFetch()
     }
-    loading.value = false
 }
 
 const prevPage = async () => {
+    loading.value = true;
     if (page.value > 1) {
-        loading.value = true
         page.value--
         await updateRouteAndFetch()
-        loading.value = false
     }
 }
 
-// FUNCTION FOR UPDATE PAGE QUERY
 const updateRouteAndFetch = async () => {
+    loading.value = true
     router.push({
         query: {
             page: page.value
@@ -55,7 +44,6 @@ const updateRouteAndFetch = async () => {
     loading.value = false
 }
 
-// CHECK SI IL Y'AURA DES MONSTRES A LA PAGE SUIVANTE
 const noMoreMonsters = computed(() => {
     return monsters.value.length < limitMonster.value
 })
@@ -100,10 +88,7 @@ onBeforeMount(async () => {
                             </div>
                         </div>
                         <div v-else key="content">
-                            <div v-for="monster in monsters" :key="monster._id" class="d-flex overflow-hidden mb-3 bg-light">
-                                <img class="img-fluid" :src="monster.image" style="width: 100px; height: 100px; object-fit: cover;" alt="">
-                                <div @click="goToDetail(monster._id)" class="name-monster h5 d-flex align-items-center bg-light px-3 mb-0">{{ monster.name }}</div>
-                            </div>
+                            <MonsterItem v-for="monster in monsters" :key="monster._id" :monster="monster" />
                             <div v-if="monsters.length === 0" class="text-center">
                                 <p>No more monsters available.</p>
                             </div>
@@ -143,8 +128,11 @@ onBeforeMount(async () => {
     border-radius: 5px;
 }
 
-.name-monster:hover {
-    color: #629226;
-    cursor: pointer;
+.fade-enter-active, .fade-leave-active {
+    transition: opacity 0.5s;
+}
+
+.fade-enter, .fade-leave-to {
+    opacity: 0;
 }
 </style>
